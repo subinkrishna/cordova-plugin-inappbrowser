@@ -257,16 +257,18 @@ static CDVWKInAppBrowser* instance = nil;
     
     [self.inAppBrowserViewController navigateTo:url];
     if (!browserOptions.hidden) {
-        [self show:nil withNoAnimate:browserOptions.hidden];
+        [self show:nil withNoAnimate:browserOptions.hidden displayCustomToolbar:browserOptions.customToolbar toolbarTitle:browserOptions.customToolbarTitle toolbarForegroundColor:[CDVWKInAppBrowserViewController colorFromHexString:browserOptions.customToolbarFg] toolbarBackgroundColor:[CDVWKInAppBrowserViewController colorFromHexString:browserOptions.customToolbarBg]];
     }
 }
 
 - (void)show:(CDVInvokedUrlCommand*)command{
-    [self show:command withNoAnimate:NO];
+    [self show:command withNoAnimate:NO displayCustomToolbar:NO toolbarTitle:nil toolbarForegroundColor:nil toolbarBackgroundColor:nil];
 }
 
-- (void)show:(CDVInvokedUrlCommand*)command withNoAnimate:(BOOL)noAnimate
+- (void)show:(CDVInvokedUrlCommand*)command withNoAnimate:(BOOL)noAnimate displayCustomToolbar:(BOOL)displayCustomToolbar toolbarTitle:(NSString *)toolbarTitle toolbarForegroundColor:(UIColor *)toolbarForegroundColor toolbarBackgroundColor:(UIColor *)toolbarBackgroundColor
 {
+    self.inAppBrowserViewController.navigationController.navigationBarHidden = YES;
+
     BOOL initHidden = NO;
     if(command == nil && noAnimate == YES){
         initHidden = YES;
@@ -289,8 +291,27 @@ static CDVWKInAppBrowser* instance = nil;
                                                         initWithRootViewController:self.inAppBrowserViewController];
     nav.orientationDelegate = self.inAppBrowserViewController;
     nav.navigationBarHidden = YES;
+    nav.navigationBar.barTintColor = toolbarBackgroundColor ?: UIColor.blackColor;
     nav.modalPresentationStyle = self.inAppBrowserViewController.modalPresentationStyle;
     nav.presentationController.delegate = self.inAppBrowserViewController;
+
+    if (displayCustomToolbar) {
+        nav.navigationBarHidden = NO;
+        nav.navigationBar.translucent = NO;
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+        button.tintColor = toolbarForegroundColor ?: UIColor.whiteColor;
+        CGFloat padding = 8;
+        button.contentEdgeInsets = UIEdgeInsetsMake(0, 0, 0, padding);
+        button.titleEdgeInsets = UIEdgeInsetsMake(0, padding, 0, -padding);
+        button.titleLabel.font = [UIFont boldSystemFontOfSize:14];
+        [button setImage:[UIImage systemImageNamed:@"chevron.left"
+                                 withConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:12 weight:UIImageSymbolWeightBold]]
+                forState:UIControlStateNormal];
+        [button setTitle:toolbarTitle forState:UIControlStateNormal];
+        [button addTarget:self.inAppBrowserViewController action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
+        UIBarButtonItem *barButtonItem = [[UIBarButtonItem alloc] initWithCustomView:button];
+        self.inAppBrowserViewController.navigationItem.leftBarButtonItem = barButtonItem;
+    }
     
     __weak CDVWKInAppBrowser* weakSelf = self;
     
@@ -833,7 +854,7 @@ BOOL isExiting = FALSE;
     self.toolbar.opaque = NO;
     self.toolbar.userInteractionEnabled = YES;
     if (_browserOptions.toolbarcolor != nil) { // Set toolbar color if user sets it in options
-      self.toolbar.barTintColor = [self colorFromHexString:_browserOptions.toolbarcolor];
+      self.toolbar.barTintColor = [CDVWKInAppBrowserViewController colorFromHexString:_browserOptions.toolbarcolor];
     }
     if (!_browserOptions.toolbartranslucent) { // Set toolbar translucent to no if user sets it in options
       self.toolbar.translucent = NO;
@@ -876,7 +897,7 @@ BOOL isExiting = FALSE;
     self.forwardButton.enabled = YES;
     self.forwardButton.imageInsets = UIEdgeInsetsZero;
     if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
-      self.forwardButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+      self.forwardButton.tintColor = [CDVWKInAppBrowserViewController colorFromHexString:_browserOptions.navigationbuttoncolor];
     }
 
     NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
@@ -884,7 +905,7 @@ BOOL isExiting = FALSE;
     self.backButton.enabled = YES;
     self.backButton.imageInsets = UIEdgeInsetsZero;
     if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
-      self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+      self.backButton.tintColor = [CDVWKInAppBrowserViewController colorFromHexString:_browserOptions.navigationbuttoncolor];
     }
 
     // Filter out Navigation Buttons if user requests so
@@ -925,7 +946,7 @@ BOOL isExiting = FALSE;
     self.closeButton = title != nil ? [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStyleBordered target:self action:@selector(close)] : [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
     self.closeButton.enabled = YES;
     // If color on closebutton is requested then initialize with that that color, otherwise use initialize with default
-    self.closeButton.tintColor = colorString != nil ? [self colorFromHexString:colorString] : [UIColor colorWithRed:60.0 / 255.0 green:136.0 / 255.0 blue:230.0 / 255.0 alpha:1];
+    self.closeButton.tintColor = colorString != nil ? [CDVWKInAppBrowserViewController colorFromHexString:colorString] : [UIColor colorWithRed:60.0 / 255.0 green:136.0 / 255.0 blue:230.0 / 255.0 alpha:1];
     
     NSMutableArray* items = [self.toolbar.items mutableCopy];
     [items replaceObjectAtIndex:buttonIndex withObject:self.closeButton];
@@ -1060,7 +1081,7 @@ BOOL isExiting = FALSE;
 
 - (UIStatusBarStyle)preferredStatusBarStyle
 {
-    return UIStatusBarStyleDefault;
+    return UIStatusBarStyleLightContent;
 }
 
 - (BOOL)prefersStatusBarHidden {
@@ -1118,7 +1139,11 @@ BOOL isExiting = FALSE;
 // change that value.
 //
 - (float) getStatusBarOffset {
-    return (float) IsAtLeastiOSVersion(@"7.0") ? [[UIApplication sharedApplication] statusBarFrame].size.height : 0.0;
+    if (self.navigationController.navigationBar.isHidden) {
+        return [[UIApplication sharedApplication] statusBarFrame].size.height;
+    } else {
+        return 0;
+    }
 }
 
 - (void) rePositionViews {
@@ -1145,7 +1170,10 @@ BOOL isExiting = FALSE;
 // Helper function to convert hex color string to UIColor
 // Assumes input like "#00FF00" (#RRGGBB).
 // Taken from https://stackoverflow.com/questions/1560081/how-can-i-create-a-uicolor-from-a-hex-string
-- (UIColor *)colorFromHexString:(NSString *)hexString {
++ (UIColor *)colorFromHexString:(NSString *)hexString {
+    if (hexString == nil) {
+        return nil;
+    }
     unsigned rgbValue = 0;
     NSScanner *scanner = [NSScanner scannerWithString:hexString];
     [scanner setScanLocation:1]; // bypass '#' character

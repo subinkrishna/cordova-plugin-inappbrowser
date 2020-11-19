@@ -77,4 +77,6 @@
 
 - (id)initWithBrowserOptions: (CDVInAppBrowserOptions*) browserOptions andSettings:(NSDictionary*) settings;
 
++ (UIColor *)colorFromHexString:(NSString *)hexString;
+
 @end

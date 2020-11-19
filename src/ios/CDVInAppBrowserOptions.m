@@ -45,6 +45,11 @@
         self.toolbarcolor = nil;
         self.toolbartranslucent = YES;
         self.beforeload = @"";
+
+        self.customToolbar = NO;
+        self.customToolbarTitle = nil;
+        self.customToolbarBg = nil;
+        self.customToolbarFg = nil;
     }
 
     return self;
