@@ -257,7 +257,7 @@ static CDVWKInAppBrowser* instance = nil;
     
     [self.inAppBrowserViewController navigateTo:url];
     if (!browserOptions.hidden) {
-        [self show:nil withNoAnimate:browserOptions.hidden displayCustomToolbar:browserOptions.customToolbar toolbarTitle:browserOptions.customToolbarTitle toolbarForegroundColor:[CDVWKInAppBrowserViewController colorFromHexString:browserOptions.customToolbarFg] toolbarBackgroundColor:[CDVWKInAppBrowserViewController colorFromHexString:browserOptions.customToolbarBg]];
+        [self show:nil withNoAnimate:browserOptions.hidden displayCustomToolbar:browserOptions.customtoolbar toolbarTitle:browserOptions.customtoolbartitle toolbarForegroundColor:[CDVWKInAppBrowserViewController colorFromHexString:browserOptions.customtoolbarfg] toolbarBackgroundColor:[CDVWKInAppBrowserViewController colorFromHexString:browserOptions.customtoolbarbg]];
     }
 }
 

@@ -45,10 +45,10 @@
 @property (nonatomic, assign) BOOL disallowoverscroll;
 @property (nonatomic, copy) NSString* beforeload;
 
-@property (nonatomic, assign) BOOL customToolbar;
-@property (nonatomic, copy) NSString* customToolbarTitle;
-@property (nonatomic, copy) NSString* customToolbarBg;
-@property (nonatomic, copy) NSString* customToolbarFg;
+@property (nonatomic, assign) BOOL customtoolbar;
+@property (nonatomic, copy) NSString* customtoolbartitle;
+@property (nonatomic, copy) NSString* customtoolbarbg;
+@property (nonatomic, copy) NSString* customtoolbarfg;
 
 + (CDVInAppBrowserOptions*)parseOptions:(NSString*)options;
 
