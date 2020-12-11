@@ -267,7 +267,7 @@ static CDVWKInAppBrowser* instance = nil;
 
 - (void)show:(CDVInvokedUrlCommand*)command withNoAnimate:(BOOL)noAnimate displayCustomToolbar:(BOOL)displayCustomToolbar toolbarTitle:(NSString *)toolbarTitle toolbarForegroundColor:(UIColor *)toolbarForegroundColor toolbarBackgroundColor:(UIColor *)toolbarBackgroundColor
 {
-    self.inAppBrowserViewController.navigationController.navigationBarHidden = YES;
+    self.inAppBrowserViewController.navigationController.navigationBarHidden = !displayCustomToolbar;
 
     BOOL initHidden = NO;
     if(command == nil && noAnimate == YES){
@@ -303,7 +303,7 @@ static CDVWKInAppBrowser* instance = nil;
         CGFloat padding = 8;
         button.contentEdgeInsets = UIEdgeInsetsMake(0, 0, 0, padding);
         button.titleEdgeInsets = UIEdgeInsetsMake(0, padding, 0, -padding);
-        button.titleLabel.font = [UIFont boldSystemFontOfSize:14];
+        button.titleLabel.font = [UIFont fontWithName:self.commandDelegate.settings[@"customtoolbarfont"] size:16] ?: [UIFont boldSystemFontOfSize:16];
         [button setImage:[UIImage systemImageNamed:@"chevron.left"
                                  withConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:12 weight:UIImageSymbolWeightBold]]
                 forState:UIControlStateNormal];
