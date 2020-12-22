@@ -32,6 +32,7 @@
     @private
     NSString* _beforeload;
     BOOL _waitForBeforeload;
+    WKProcessPool *_processPool;
 }
 
 @property (nonatomic, retain) CDVWKInAppBrowser* instance;
@@ -53,6 +54,7 @@
     @private
     CDVInAppBrowserOptions *_browserOptions;
     NSDictionary *_settings;
+    WKProcessPool *_processPool;
 }
 
 @property (nonatomic, strong) IBOutlet WKWebView* webView;
@@ -75,6 +77,6 @@
 - (void)showToolBar:(BOOL)show : (NSString *) toolbarPosition;
 - (void)setCloseButtonTitle:(NSString*)title : (NSString*) colorString : (int) buttonIndex;
 
-- (id)initWithBrowserOptions: (CDVInAppBrowserOptions*) browserOptions andSettings:(NSDictionary*) settings;
+- (id)initWithBrowserOptions: (CDVInAppBrowserOptions*) browserOptions andSettings:(NSDictionary*) settings processPool:(WKProcessPool *)processPool;
 
 @end
