@@ -19,10 +19,6 @@
 
 #import "CDVWKInAppBrowser.h"
 
-#if __has_include("CDVWKProcessPoolFactory.h")
-#import "CDVWKProcessPoolFactory.h"
-#endif
-
 #import <Cordova/CDVPluginResult.h>
 
 #define    kInAppBrowserTargetSelf @"_self"
@@ -60,6 +56,7 @@ static CDVWKInAppBrowser* instance = nil;
     _callbackIdPattern = nil;
     _beforeload = @"";
     _waitForBeforeload = NO;
+    _processPool = [[WKProcessPool alloc] init];
 }
 
 - (void)onReset
@@ -132,7 +129,11 @@ static CDVWKInAppBrowser* instance = nil;
         NSDate* dateFrom = [NSDate dateWithTimeIntervalSince1970:0];
         [dataStore removeDataOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] modifiedSince:dateFrom completionHandler:^{
             NSLog(@"Removed all WKWebView data");
-            self.inAppBrowserViewController.webView.configuration.processPool = [[WKProcessPool alloc] init]; // create new process pool to flush all data
+
+            // Create a new process pool to flush all data.
+            WKProcessPool *newProcessPool = [[WKProcessPool alloc] init];
+            self->_processPool = newProcessPool;
+            self.inAppBrowserViewController.webView.configuration.processPool = newProcessPool;
         }];
     }
     
@@ -198,7 +199,7 @@ static CDVWKInAppBrowser* instance = nil;
     }
 
     if (self.inAppBrowserViewController == nil) {
-        self.inAppBrowserViewController = [[CDVWKInAppBrowserViewController alloc] initWithBrowserOptions: browserOptions andSettings:self.commandDelegate.settings];
+        self.inAppBrowserViewController = [[CDVWKInAppBrowserViewController alloc] initWithBrowserOptions: browserOptions andSettings:self.commandDelegate.settings processPool:_processPool];
         self.inAppBrowserViewController.navigationDelegate = self;
         
         if ([self.viewController conformsToProtocol:@protocol(CDVScreenOrientationDelegate)]) {
@@ -726,12 +727,13 @@ static CDVWKInAppBrowser* instance = nil;
 CGFloat lastReducedStatusBarHeight = 0.0;
 BOOL isExiting = FALSE;
 
-- (id)initWithBrowserOptions: (CDVInAppBrowserOptions*) browserOptions andSettings:(NSDictionary *)settings
+- (id)initWithBrowserOptions: (CDVInAppBrowserOptions*) browserOptions andSettings:(NSDictionary *)settings processPool:(WKProcessPool *)processPool
 {
     self = [super init];
     if (self != nil) {
         _browserOptions = browserOptions;
         _settings = settings;
+        _processPool = processPool;
         self.webViewUIDelegate = [[CDVWKInAppBrowserUIDelegate alloc] initWithTitle:[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"]];
         [self.webViewUIDelegate setViewController:self];
         
@@ -765,9 +767,7 @@ BOOL isExiting = FALSE;
     }
     configuration.applicationNameForUserAgent = userAgent;
     configuration.userContentController = userContentController;
-#if __has_include("CDVWKProcessPoolFactory.h")
-    configuration.processPool = [[CDVWKProcessPoolFactory sharedFactory] sharedProcessPool];
-#endif
+    configuration.processPool = _processPool;
     [configuration.userContentController addScriptMessageHandler:self name:IAB_BRIDGE_NAME];
     
     //WKWebView options
