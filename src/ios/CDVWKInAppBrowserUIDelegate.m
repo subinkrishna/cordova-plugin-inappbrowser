@@ -114,6 +114,25 @@
     [[self getViewController] presentViewController:alert animated:YES completion:nil];
 }
 
+- (WKWebView *)        webView:(WKWebView *)webView
+createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration
+           forNavigationAction:(WKNavigationAction *)navigationAction
+                windowFeatures:(WKWindowFeatures *)windowFeatures
+{
+    if (navigationAction.request.URL) {
+        NSURL *url = navigationAction.request.URL;
+        NSString *urlPath = url.absoluteString;
+
+        if ([urlPath rangeOfString:@"https://"].location != NSNotFound || [urlPath rangeOfString:@"http://"].location != NSNotFound) {
+            [[UIApplication sharedApplication] openURL:url
+                                               options:@{}
+                                     completionHandler:^(BOOL success) {}];
+        }
+    }
+    
+    return nil;
+}
+
 -(UIViewController*) getViewController
 {
     return _viewController;
