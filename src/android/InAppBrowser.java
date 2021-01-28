@@ -64,6 +64,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.Config;
 import org.apache.cordova.CordovaArgs;
@@ -122,6 +124,7 @@ public class InAppBrowser extends CordovaPlugin {
     private static final String CUSTOM_TOOLBAR_TITLE = "customtoolbartitle";
     private static final String CUSTOM_TOOLBAR_BACKGROUND_COLOR = "customtoolbarbg";
     private static final String CUSTOM_TOOLBAR_FOREGROUND_COLOR = "customtoolbarfg";
+    private static final String CUSTOM_LOADER = "loader";
 
     private static final List customizableOptions = Arrays.asList(
             CLOSE_BUTTON_CAPTION,
@@ -131,14 +134,17 @@ public class InAppBrowser extends CordovaPlugin {
             FOOTER_COLOR,
             CUSTOM_TOOLBAR_TITLE,
             CUSTOM_TOOLBAR_BACKGROUND_COLOR,
-            CUSTOM_TOOLBAR_FOREGROUND_COLOR
+            CUSTOM_TOOLBAR_FOREGROUND_COLOR,
+            CUSTOM_LOADER
     );
 
     private final static int DEFAULT_BACKGROUND_COLOR = 0xffffffff;
     private final static int DEFAULT_FOREGROUND_COLOR = 0xff000000;
+    private final static String DEFAULT_LOADER = InAppBrowserViewUtil.LOADER_DEFAULT;
 
     private InAppBrowserDialog dialog;
     private WebView inAppWebView;
+    @Nullable  private View loadingIndicator;
     private EditText edittext;
     private CallbackContext callbackContext;
     private boolean showLocationBar = true;
@@ -171,6 +177,7 @@ public class InAppBrowser extends CordovaPlugin {
     private String customToolbarTitle = "";
     private int backgroundColor = DEFAULT_BACKGROUND_COLOR;
     private int foregroundColor = DEFAULT_FOREGROUND_COLOR;
+    private String loader = DEFAULT_LOADER;
 
     /**
      * Executes the request and returns PluginResult.
@@ -662,6 +669,7 @@ public class InAppBrowser extends CordovaPlugin {
         customToolbarTitle = "";
         backgroundColor = DEFAULT_BACKGROUND_COLOR;
         foregroundColor = DEFAULT_FOREGROUND_COLOR;
+        loader = DEFAULT_LOADER;
 
         if (features != null) {
             String show = features.get(LOCATION);
@@ -759,6 +767,9 @@ public class InAppBrowser extends CordovaPlugin {
             foregroundColor = (foregroundColorSet != null)
                     ? android.graphics.Color.parseColor(foregroundColorSet)
                     : DEFAULT_FOREGROUND_COLOR;
+
+            String loaderSet = features.get(CUSTOM_LOADER);
+            loader = loaderSet != null ? loaderSet.trim() : DEFAULT_LOADER;
         }
 
         final CordovaWebView thatWebView = this.webView;
@@ -1127,6 +1138,12 @@ public class InAppBrowser extends CordovaPlugin {
                     webViewLayout.addView(footer);
                 }
 
+                // Loading indicator
+                loadingIndicator = InAppBrowserViewUtil.loadingIndicator(cordova.getActivity(), loader);
+                if (null != loadingIndicator) {
+                    webViewLayout.addView(loadingIndicator);
+                }
+
                 WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
                 lp.copyFrom(dialog.getWindow().getAttributes());
                 lp.width = WindowManager.LayoutParams.MATCH_PARENT;
@@ -1448,6 +1465,11 @@ public class InAppBrowser extends CordovaPlugin {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
+            LOG.d(LOG_TAG, "Page started: " + url);
+            if (null != loadingIndicator) {
+                loadingIndicator.setVisibility(View.VISIBLE);
+            }
+
             String newloc = "";
             if (url.startsWith("http:") || url.startsWith("https:") || url.startsWith("file:")) {
                 newloc = url;
@@ -1477,6 +1499,10 @@ public class InAppBrowser extends CordovaPlugin {
 
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
+            LOG.d(LOG_TAG, "Page finished: " + url);
+            if (null != loadingIndicator) {
+                loadingIndicator.setVisibility(View.GONE);
+            }
 
             // Set the namespace for postMessage()
             if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {

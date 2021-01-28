@@ -18,7 +18,6 @@
  */
 
 #import "CDVWKInAppBrowser.h"
-
 #import <Cordova/CDVPluginResult.h>
 
 #define    kInAppBrowserTargetSelf @"_self"
@@ -814,22 +813,7 @@ BOOL isExiting = FALSE;
        [self.webView.scrollView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
    }
 #endif
-    
-    self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-    self.spinner.alpha = 1.000;
-    self.spinner.autoresizesSubviews = YES;
-    self.spinner.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleRightMargin);
-    self.spinner.clearsContextBeforeDrawing = NO;
-    self.spinner.clipsToBounds = NO;
-    self.spinner.contentMode = UIViewContentModeScaleToFill;
-    self.spinner.frame = CGRectMake(CGRectGetMidX(self.webView.frame), CGRectGetMidY(self.webView.frame), 20.0, 20.0);
-    self.spinner.hidden = NO;
-    self.spinner.hidesWhenStopped = YES;
-    self.spinner.multipleTouchEnabled = NO;
-    self.spinner.opaque = NO;
-    self.spinner.userInteractionEnabled = NO;
-    [self.spinner stopAnimating];
-    
+
     self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
     self.closeButton.enabled = YES;
     
@@ -924,7 +908,6 @@ BOOL isExiting = FALSE;
     self.view.backgroundColor = [UIColor clearColor];
     [self.view addSubview:self.toolbar];
     [self.view addSubview:self.addressLabel];
-    [self.view addSubview:self.spinner];
 }
 
 - (id)settingForKey:(NSString*)key
@@ -1190,12 +1173,9 @@ BOOL isExiting = FALSE;
     self.addressLabel.text = NSLocalizedString(@"Loading...", nil);
     self.backButton.enabled = theWebView.canGoBack;
     self.forwardButton.enabled = theWebView.canGoForward;
-    
-    NSLog(_browserOptions.hidespinner ? @"Yes" : @"No");
-    if(!_browserOptions.hidespinner) {
-        [self.spinner startAnimating];
-    }
-    
+
+    [self addLoaderViewIfNeeded];
+
     return [self.navigationDelegate didStartProvisionalNavigation:theWebView];
 }
 
@@ -1221,9 +1201,9 @@ BOOL isExiting = FALSE;
     self.backButton.enabled = theWebView.canGoBack;
     self.forwardButton.enabled = theWebView.canGoForward;
     theWebView.scrollView.contentInset = UIEdgeInsetsZero;
-    
-    [self.spinner stopAnimating];
-    
+
+    [self tearDownLoaderView];
+
     [self.navigationDelegate didFinishNavigation:theWebView];
 }
     
@@ -1233,8 +1213,9 @@ BOOL isExiting = FALSE;
     
     self.backButton.enabled = theWebView.canGoBack;
     self.forwardButton.enabled = theWebView.canGoForward;
-    [self.spinner stopAnimating];
-    
+
+    [self tearDownLoaderView];
+
     self.addressLabel.text = NSLocalizedString(@"Load Error", nil);
     
     [self.navigationDelegate webView:theWebView didFailNavigation:error];
@@ -1248,6 +1229,33 @@ BOOL isExiting = FALSE;
 - (void)webView:(WKWebView*)theWebView didFailProvisionalNavigation:(null_unspecified WKNavigation *)navigation withError:(nonnull NSError *)error
 {
     [self webView:theWebView failedNavigation:@"didFailProvisionalNavigation" withError:error];
+}
+
+- (void)addLoaderViewIfNeeded {
+    if([_browserOptions.loader isEqualToString:LOADER_DEFAULT]) {
+        UIActivityIndicatorView *spinnerLoaderView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(0, 0, 20, 20)];
+        spinnerLoaderView.center = self.webView.center;
+        [spinnerLoaderView startAnimating];
+        _loaderView = spinnerLoaderView;
+        [self.webView addSubview:_loaderView];
+    } else if ([_browserOptions.loader isEqualToString:LOADER_ENTERPRISE]) {
+        NSURL *imageURL = [[NSBundle mainBundle] URLForResource:@"enterprise-loader" withExtension:@"gif"];
+
+        UIImageView *enterpriseLoaderView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 60, 60)];
+        enterpriseLoaderView.center = self.webView.center;
+        _loaderView = enterpriseLoaderView;
+        [self.webView addSubview:_loaderView];
+
+        _imageAnimator = [[CDVWKInAppBrowserImageAnimator alloc] initWithImageURL:imageURL imageView:enterpriseLoaderView];
+        CGImageAnimationStatus status = [_imageAnimator start];
+        NSLog(@"Started enterprise loader animation with status: %d", status);
+    }
+}
+
+- (void)tearDownLoaderView {
+    [_loaderView removeFromSuperview];
+    _loaderView = nil;
+    _imageAnimator = nil;
 }
 
 #pragma mark WKScriptMessageHandler delegate

@@ -49,6 +49,7 @@
         <source-file src="src/android/InAppBrowserDialog.java" target-dir="src/org/apache/cordova/inappbrowser" />
         <source-file src="src/android/InAppChromeClient.java" target-dir="src/org/apache/cordova/inappbrowser" />
         <source-file src="src/android/InAppBrowserToolbarUtil.java" target-dir="src/org/apache/cordova/inappbrowser" />
+        <source-file src="src/android/InAppBrowserViewUtil.kt" target-dir="app/src/main/java/org/apache/cordova/inappbrowser" />
 
         <!-- drawable src/android/resources -->
         <resource-file src="src/android/res/drawable-hdpi/ic_action_next_item.png" target="res/drawable-hdpi/ic_action_next_item.png" />
@@ -66,8 +67,14 @@
         <resource-file src="src/android/res/drawable-xhdpi/ic_action_remove.png" target="res/drawable-xhdpi/ic_action_remove.png" />
         <resource-file src="src/android/res/drawable-xxhdpi/ic_action_remove.png" target="res/drawable-xxhdpi/ic_action_remove.png" />
 
+        <!-- Misc. resources -->
+        <resource-file src="resources/enterprise-loader.gif" target="res/raw/ic_gif_enterprise.gif" />
+
         <!-- layout src/android/resources -->
         <resource-file src="src/android/res/layout/in_app_browser_toolbar.xml" target="res/layout/in_app_browser_toolbar.xml" />
+
+        <!-- frameworks-->
+        <framework src="com.github.bumptech.glide:glide:4.8.0" />
 
     </platform>
 
@@ -90,8 +97,11 @@
 	    <source-file src="src/ios/CDVWKInAppBrowser.m" />
 	    <header-file src="src/ios/CDVWKInAppBrowserUIDelegate.h" />
 	    <source-file src="src/ios/CDVWKInAppBrowserUIDelegate.m" />
+        <header-file src="src/ios/CDVWKInAppBrowserImageAnimator.h" />
+        <source-file src="src/ios/CDVWKInAppBrowserImageAnimator.m" />
 
 	    <framework src="CoreGraphics.framework" />
+        <resource-file src="resources/enterprise-loader.gif" />
     </platform>
 
     <!-- osx -->

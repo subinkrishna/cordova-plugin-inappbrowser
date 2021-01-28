@@ -20,6 +20,10 @@
 
 @interface CDVInAppBrowserOptions : NSObject {}
 
+#define LOADER_DEFAULT @"default"
+#define LOADER_ENTERPRISE @"enterprise"
+#define LOADER_NONE @"none"
+
 @property (nonatomic, assign) BOOL location;
 @property (nonatomic, assign) BOOL toolbar;
 @property (nonatomic, copy) NSString* closebuttoncaption;
@@ -33,7 +37,6 @@
 @property (nonatomic, assign) BOOL cleardata;
 @property (nonatomic, assign) BOOL clearcache;
 @property (nonatomic, assign) BOOL clearsessioncache;
-@property (nonatomic, assign) BOOL hidespinner;
 
 @property (nonatomic, copy) NSString* presentationstyle;
 @property (nonatomic, copy) NSString* transitionstyle;
@@ -49,6 +52,9 @@
 @property (nonatomic, copy) NSString* customtoolbartitle;
 @property (nonatomic, copy) NSString* customtoolbarbg;
 @property (nonatomic, copy) NSString* customtoolbarfg;
+
+/// "default", "enterprise", or "none"
+@property (nonatomic, copy) NSString* loader;
 
 + (CDVInAppBrowserOptions*)parseOptions:(NSString*)options;
 

@@ -23,6 +23,7 @@
 #import "CDVWKInAppBrowserUIDelegate.h"
 #import "CDVInAppBrowserOptions.h"
 #import "CDVInAppBrowserNavigationController.h"
+#import "CDVWKInAppBrowserImageAnimator.h"
 
 @class CDVWKInAppBrowserViewController;
 
@@ -55,6 +56,8 @@
     CDVInAppBrowserOptions *_browserOptions;
     NSDictionary *_settings;
     WKProcessPool *_processPool;
+    UIView *_loaderView;
+    CDVWKInAppBrowserImageAnimator *_imageAnimator;
 }
 
 @property (nonatomic, strong) IBOutlet WKWebView* webView;
@@ -63,7 +66,6 @@
 @property (nonatomic, strong) IBOutlet UILabel* addressLabel;
 @property (nonatomic, strong) IBOutlet UIBarButtonItem* backButton;
 @property (nonatomic, strong) IBOutlet UIBarButtonItem* forwardButton;
-@property (nonatomic, strong) IBOutlet UIActivityIndicatorView* spinner;
 @property (nonatomic, strong) IBOutlet UIToolbar* toolbar;
 @property (nonatomic, strong) IBOutlet CDVWKInAppBrowserUIDelegate* webViewUIDelegate;
 

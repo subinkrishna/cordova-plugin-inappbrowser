@@ -32,7 +32,6 @@
         self.cleardata = NO;
         self.clearcache = NO;
         self.clearsessioncache = NO;
-        self.hidespinner = NO;
 
         self.enableviewportscale = NO;
         self.mediaplaybackrequiresuseraction = NO;
@@ -50,6 +49,7 @@
         self.customtoolbartitle = nil;
         self.customtoolbarbg = nil;
         self.customtoolbarfg = nil;
+        self.loader = LOADER_DEFAULT;
     }
 
     return self;
